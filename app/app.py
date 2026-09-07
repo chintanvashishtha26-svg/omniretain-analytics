@@ -7,19 +7,19 @@ import os
 
 st.set_page_config(page_title="OmniRetain | Superstore Analytics", layout="wide")
 
-st.title("⚡ OmniRetain - Customer Intelligence & Retention Engine")
+st.title(" OmniRetain - Customer Intelligence & Retention Engine")
 st.caption("Retail Analytics Pipeline & Retention Experimentation Platform")
 
-# Load and process Superstore CSV
+
 @st.cache_data
 def load_and_process_superstore():
-    file_path = 'data/Sample - Superstore.csv'
+    file_path = 'retail_transaction.csv'
     
     if not os.path.exists(file_path):
         st.error(f"Dataset not found at {file_path}. Please verify the file location.")
         return pd.DataFrame()
     
-    # Read with fallback encoding
+    
     try:
         df = pd.read_csv(file_path, encoding='utf-8')
     except UnicodeDecodeError:
@@ -28,7 +28,7 @@ def load_and_process_superstore():
     df['Order Date'] = pd.to_datetime(df['Order Date'])
     clean_df = df[df['Sales'] > 0].copy()
     
-    # RFM Aggregation
+    
     snapshot_date = clean_df['Order Date'].max() + pd.Timedelta(days=1)
     
     rfm = clean_df.groupby('Customer ID').agg(
@@ -37,7 +37,7 @@ def load_and_process_superstore():
         monetary=('Sales', 'sum')
     ).reset_index()
     
-    # 5-Quintile Scoring
+    
     rfm['r_score'] = pd.qcut(rfm['recency'], 5, labels=[5, 4, 3, 2, 1]).astype(int)
     rfm['f_score'] = pd.qcut(rfm['frequency'].rank(method='first'), 5, labels=[1, 2, 3, 4, 5]).astype(int)
     rfm['m_score'] = pd.qcut(rfm['monetary'], 5, labels=[1, 2, 3, 4, 5]).astype(int)
@@ -62,13 +62,13 @@ def load_and_process_superstore():
 df_rfm = load_and_process_superstore()
 
 if not df_rfm.empty:
-    # Sidebar Filters
+    
     st.sidebar.header("Cohort Filters")
     all_segments = df_rfm['segment'].unique().tolist()
     selected_segments = st.sidebar.multiselect("Select Segments:", all_segments, default=all_segments)
     filtered = df_rfm[df_rfm['segment'].isin(selected_segments)]
 
-    # Top KPI Metrics
+    
     c1, c2, c3, c4 = st.columns(4)
     total_rev = filtered['monetary'].sum()
     avg_spend = filtered['monetary'].mean() if len(filtered) > 0 else 0
@@ -82,16 +82,16 @@ if not df_rfm.empty:
 
     st.divider()
 
-    # Visualizations
+    
     col1, col2 = st.columns(2)
     with col1:
-        st.subheader("📊 Revenue Contribution by Segment")
+        st.subheader(" Revenue Contribution by Segment")
         seg_rev = filtered.groupby('segment')['monetary'].sum().reset_index()
         fig_pie = px.pie(seg_rev, names='segment', values='monetary', hole=0.4, color_discrete_sequence=px.colors.qualitative.Safe)
         st.plotly_chart(fig_pie, use_container_width=True)
 
     with col2:
-        st.subheader("🎯 Recency vs Total Spend")
+        st.subheader(" Recency vs Total Spend")
         fig_scatter = px.scatter(
             filtered, 
             x='recency', 
@@ -105,12 +105,12 @@ if not df_rfm.empty:
 
     # Processed Data Table
     st.divider()
-    st.subheader("📋 Segmented Customer Data Table")
+    st.subheader(" Segmented Customer Data Table")
     st.dataframe(filtered.head(100), use_container_width=True)
 
-    # Retention Experimentation Module
+    
     st.divider()
-    st.subheader("🧪 Live Retention Campaign Experimentation (A/B Test)")
+    st.subheader(" Live Retention Campaign Experimentation (A/B Test)")
     st.markdown("Testing coupon intervention on **At-Risk** customers against baseline control.")
 
     sim1, sim2 = st.columns(2)
@@ -129,6 +129,6 @@ if not df_rfm.empty:
 
     st.write(f"**Observed Uplift:** `{uplift:+.2f}%` | **Calculated p-value:** `{p_val:.5f}`")
     if p_val < alpha:
-        st.success(f"✅ Statistically Significant: Retention offer provides measurable uplift ($p = {p_val:.5f} < {alpha}$).")
+        st.success(f" Statistically Significant: Retention offer provides measurable uplift ($p = {p_val:.5f} < {alpha}$).")
     else:
-        st.warning(f"⚠️ Inconclusive: Uplift is not statistically significant ($p = {p_val:.5f} \ge {alpha}$).")
+        st.warning(f"Inconclusive: Uplift is not statistically significant ($p = {p_val:.5f} \ge {alpha}$).")
