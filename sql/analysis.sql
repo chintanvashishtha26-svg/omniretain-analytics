@@ -1,5 +1,4 @@
--- Superstore Customer RFM Analysis Pipeline
--- Objective: Rank customers across Recency, Frequency, and Monetary quintiles
+
 
 WITH clean_orders AS (
     SELECT 
@@ -12,7 +11,7 @@ WITH clean_orders AS (
 ),
 
 snapshot AS (
-    -- Reference baseline date for recency calculation
+    
     SELECT MAX(order_date) + INTERVAL '1 day' AS ref_date
     FROM clean_orders
 ),
